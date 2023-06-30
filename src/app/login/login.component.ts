@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 
 @Component({
@@ -16,8 +16,11 @@ export class LoginComponent {
               private router: Router) { }
 
   onSubmit() {
-   
-    this.http.get<any>(`https://localhost:8080/employee/getAllByUPN/${this.username}`).subscribe(
+    const username = 'josetest';
+      const password = '123456';
+      const credentials = btoa(`${username}:${password}`);
+      const headers = new HttpHeaders().set('Authorization', `Basic ${credentials}`);
+    this.http.get<any>(`https://localhost:8080/employee/getAllByUPN/${this.username}`, { headers }).subscribe(
       response => {
         
         debugger;

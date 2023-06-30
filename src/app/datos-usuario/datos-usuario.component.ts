@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Component({
   selector: 'app-datos-usuario',
@@ -53,15 +53,22 @@ export class DatosUsuarioComponent {
     const startOfWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
     const endOfWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 6);
 
-    try {
-      const response = await this.http.get<any>(`https://localhost:8080/employee/getAll`).toPromise();
+    try {      
+      const username = 'josetest';
+      const password = '123456';
+      const credentials = btoa(`${username}:${password}`);
+      const headers = new HttpHeaders().set('Authorization', `Basic ${credentials}`);
+      const response = await this.http.get<any>(`https://localhost:8080/employee/getAll`,{ headers }).toPromise();
       if (response.Result != null) {
         console.log(response.Result);
         debugger;
-        return response.Result.filter((emp: { BirthDate: string | number | Date; }) => {
+        
+        return response.Result.filter((emp: { BirthDate: Date; })=> {
+          //return emp.Surname === "Talaveron" - No puedo mostrar los compañeros que cumplen años por el problema de acceso a sharepoint
           const birthday = new Date(emp.BirthDate);
           return birthday >= startOfWeek && birthday <= endOfWeek;
         });
+
       } else {
         alert("No hay datos para mostrar");
         console.log(response);
@@ -77,8 +84,7 @@ export class DatosUsuarioComponent {
   async showListEmployeeBirthday(): Promise<any>{
           
     debugger;
-    const employees = await this.getAllEmployees();
-       
+    const employees = await this.getAllEmployees();      
 
     return employees;    
   }
@@ -86,19 +92,13 @@ export class DatosUsuarioComponent {
 function calcularDiasParaCumple(BirthDate: Date):number {
   const today = new Date();
 
-  // Establecer el año actual en la fecha de cumpleaños
   const currentYearBirthday = new Date(today.getFullYear(), BirthDate.getMonth(), BirthDate.getDate());
 
-  // Comprobar si la fecha de cumpleaños ya ha pasado en este año
   if (currentYearBirthday < today) {
-    // Si ya ha pasado, sumar un año al año actual
     currentYearBirthday.setFullYear(currentYearBirthday.getFullYear() + 1);
   }
-
-  // Calcular la diferencia en milisegundos entre la fecha de cumpleaños y la fecha actual
   const timeDiff = currentYearBirthday.getTime() - today.getTime();
 
-  // Calcular el número de días restantes
   const daysRemaining = Math.ceil(timeDiff / (1000 * 3600 * 24));
 
   return daysRemaining;
